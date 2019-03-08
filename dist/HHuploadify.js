@@ -1,768 +1,484 @@
-window["HHuploadify"] =
-/******/ (function(modules) { // webpackBootstrap
-/******/ 	// The module cache
-/******/ 	var installedModules = {};
-/******/
-/******/ 	// The require function
-/******/ 	function __webpack_require__(moduleId) {
-/******/
-/******/ 		// Check if module is in cache
-/******/ 		if(installedModules[moduleId]) {
-/******/ 			return installedModules[moduleId].exports;
-/******/ 		}
-/******/ 		// Create a new module (and put it into the cache)
-/******/ 		var module = installedModules[moduleId] = {
-/******/ 			i: moduleId,
-/******/ 			l: false,
-/******/ 			exports: {}
-/******/ 		};
-/******/
-/******/ 		// Execute the module function
-/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
-/******/
-/******/ 		// Flag the module as loaded
-/******/ 		module.l = true;
-/******/
-/******/ 		// Return the exports of the module
-/******/ 		return module.exports;
-/******/ 	}
-/******/
-/******/
-/******/ 	// expose the modules object (__webpack_modules__)
-/******/ 	__webpack_require__.m = modules;
-/******/
-/******/ 	// expose the module cache
-/******/ 	__webpack_require__.c = installedModules;
-/******/
-/******/ 	// define getter function for harmony exports
-/******/ 	__webpack_require__.d = function(exports, name, getter) {
-/******/ 		if(!__webpack_require__.o(exports, name)) {
-/******/ 			Object.defineProperty(exports, name, {
-/******/ 				configurable: false,
-/******/ 				enumerable: true,
-/******/ 				get: getter
-/******/ 			});
-/******/ 		}
-/******/ 	};
-/******/
-/******/ 	// getDefaultExport function for compatibility with non-harmony modules
-/******/ 	__webpack_require__.n = function(module) {
-/******/ 		var getter = module && module.__esModule ?
-/******/ 			function getDefault() { return module['default']; } :
-/******/ 			function getModuleExports() { return module; };
-/******/ 		__webpack_require__.d(getter, 'a', getter);
-/******/ 		return getter;
-/******/ 	};
-/******/
-/******/ 	// Object.prototype.hasOwnProperty.call
-/******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
-/******/
-/******/ 	// __webpack_public_path__
-/******/ 	__webpack_require__.p = "";
-/******/
-/******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 0);
-/******/ })
-/************************************************************************/
-/******/ ([
-/* 0 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/**
+ * version 1.0.2
+ * HHuploadify - a jquery plugin for pictures uploading extending Huploadify ( which extends uploadify )
+ * written on omd 1.1.2 https://github.com/tangshuang/omd
+ */
 
-"use strict";
-Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var HHuploadify = function () {
-	function HHuploadify() {
-		var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-
-		_classCallCheck(this, HHuploadify);
+!function(dependencies,factory){
+	// amd || cmd
+	if(typeof define == 'function' && (define.cmd || define.amd)) {
+		define(dependencies,function() {
+			return factory();
+		});
+	}
+	else {
+		var ex = factory();
+		// CommonJS NodeJS
+		if(typeof module !== 'undefined' && typeof exports === 'object') {
+			module.exports = ex;
+		}
+		// Javascript: exports as window functions
+		else {
+			for(var i in ex) {
+				window[i] = ex[i];
+			}
+		}
+	}
+}(['jquery'],function(){
+	$.fn.HHuploadify = function(opts){
 
 		var defaults = {
+            uploader:'',//upload to server url
+            method:'post',//http request type: get/post
+            formData:null,//append data like: {key1:value1,key2:value2}
+            fileObjName:'file',//upload form file name field, php $_FILES['file']
 
-			container: '', // i.e. #upload
+            fileTypeExts:'*.jpg;*.jpeg;*.png;*.gif;*.JPG;*.PNG;*.GIF;*.JPEG',//file can be uploaded exts like: '*.jpg;*.doc'
+            fileSizeLimit:2048,//max upload file size: KB
 
-			// upload options
-			url: '', // upload to which server url
-			method: 'post', // http request type: post/put
-			field: 'file', // upload file name field, php $_FILES['file']
-			data: null, // append data in your request like: {key1:value1,key2:value2}
+			multi:true,//choose multi pictures 选择图片的时候可以一次性选择多张图片上传，为false时只能选一张
+			single:false,// force to upload only one item 强制只上传一张图片,这时multi会被强制设置为false
+			auto:false,//auto upload
 
-			// view options
-			fileTypeExts: 'jpg,jpeg,png,gif,JPG,PNG,GIF,JPEG', // file can be uploaded exts like: 'jpg,png'
-			fileSizeLimit: 2048, // max upload file size: KB
+            buttonText:'choose',//words on upload button
+            itemTitle:false,//words in item area, you should use when single=true 是否先单个上传框中显示标题,如果为false则表示不显示,否则将显示设置当值
 
-			multiple: true, // be or not be able to choose multi files
-			single: false, // force to upload only one item, even through multiple is true
-			auto: false, // auto begin to upload after select local files
+            itemTemplate:'<span id="${fileID}" class="uploadify-queue-item"><span class="uploadify-queue-item-container"><span class="uploadify-progress"></span><a href="javascript:void(0);" class="uploadbtn">上传</a><a href="javascript:void(0);" class="delfilebtn">&times;</a></span></span>',
 
-			chooseText: 'Choose', // words on choose button
-			uploadText: 'Upload', // words on upload button, if auto is true, upload button will not show
+            showPreview:1,//preview picture, 0: close; 1: only preview local origin picture; 2: preview picture on server by result 'url' fields after complate uploading 是否选择好图片后进行预览,0不预览,1只预览本地图片,2先预览本地图片,上传完成后预览服务器上的图片,需要设置showPreviewField
+			showPreviewField:'url', // 当showPreview=2时,图片上传完成以后,服务器返回当图片地址保存在返回当json的哪一个字段中,这也就是说,图片上传返回数据必须是json
+			showUploadedBar:true, // 是否显示正在上传进度条
+			showUploadedFilename:false, // 是否显示正在上传文件名
+			showUploadedPercent:false, // 是否显示已上传百分比
+			showUploadedSize:false, // 是否显示已上传大小
+			removeTimeout: 500,//process bar fadeout time
 
-			template: '\n\t\t\t\t<span id="uploadify-{queueId}-{fileId}" class="uploadify-item">\n\t\t\t\t\t<span class="uploadify-item-container">\n\t\t\t\t\t\t<span class="uploadify-item-progress"></span>\n\t\t\t\t\t\t<a href="javascript:void(0);" class="uploadify-item-delete" data-fileid="{fileId}">&times;</a>\n\t\t\t\t\t</span>\n\t\t\t\t</span>\n\t\t\t',
-
-			files: null, // array, if files is not empty, list will be rendered when plugin loaded, see demo
-
-			showUploadProcess: 'size', // bar|percent|size, when uploading, which one to show the process of uploading status
-			showPreview: 1, // preview file, 0: close; 1: only preview local origin file; 2: preview file on server by result 'url' fields after complate uploading
-			showPreviewField: 'url', // when showPreview is 2, which field will be used as image url from server side in response json
-
-			// envents callback functions
-			onInit: null, // when plugin is ready
-			onSelect: null, // when select a file
-			onSelectError: null,
-			onUploadStart: null, // when a file upload start
-			onUploadSuccess: null, // when a file upload success
-			onUploadError: null, // when a file upload fail
-			onUploadComplete: null, // when a file upload finished, success or failure
-			onUploadCancel: null, // when cancel a file to upload
-			onQueueComplete: null, // when all of the files in a queue complate (success or error), may you have more than one queue
-			onRemoved: null, // when remove a file in the list
-			onDestroy: null, // when all resource removed
-			onReset: null // when after reset done
+			onInit:null,//when plugin is ready
+			onSelect:null,//when select a file
+			onUploadStart:null,//when a picture upload start
+			onUploadSuccess:null,//when a picture upload success
+			onUploadError:null, //when a picture upload fail
+			onUploadComplete:null,//when a picture upload success (or error)
+			onCancel:null,//when cancel a picture to upload
+			onQueueComplete:null,//when all of the pictures in a queue complate (success or error), may you have more than one queue
+			onClearQueue:null,//when cancel a queue
+			onDestroy:null//when cancel all queue
 		};
-		this.options = this.merge(defaults, options);
 
-		this.id = Date.now();
-		this.files = [];
+		var option = $.extend(defaults,opts);
 
-		var appVersion = window.navigator.appVersion;
-		this.isIE = appVersion.indexOf('MSIE') !== -1;
-		this.isIE9 = this.isIE && appVersion.indexOf('MSIE 9') !== -1;
-		this.isOldIE = this.isIE && appVersion.indexOf('MSIE 10') === -1 && appVersion.indexOf('MSIE 9') === -1;
-
-		// force to choose only one file
-		if (this.options.single) {
-			this.options.multiple = false;
-		}
-		if (this.isIE9) {
-			this.options.multiple = false;
+		// force to choose only one picture 只能上传一张图片时,强制只能选择一张图片
+		if(option.single) {
+			option.multi = false;
 		}
 
-		this.init();
-		this.events();
-	}
-
-	_createClass(HHuploadify, [{
-		key: 'init',
-		value: function init() {
-			var id = this.id;
-			var options = this.options;
-			var chooseHTML = '\n\t\t\t<a id="uploadify-choose-button-' + id + '"\n\t\t\t\thref="javascript:void(0)"\n\t\t\t\tclass="uploadify-choose-button"\n\t\t\t\t>\n\t\t\t\t<span>' + options.chooseText + '</span>\n\t\t\t</a>\n\t\t';
-			var uploadHTML = '\n\t\t\t<a id="uploadify-upload-button-' + id + '"\n\t\t\t\thref="javascript:void(0)"\n\t\t\t\tclass="uploadify-upload-button hidden"\n\t\t\t\t>\n\t\t\t\t<span>' + options.uploadText + '</span>\n\t\t\t</a>\n\t\t';
-			var errorHTML = '\n\t\t\t<span id="uploadify-error-' + id + '" class="uploadify-error hidden"><span class="uploadify-error-container"><span class="uploadify-error-msg"></span></span></span>\n\t\t';
-			var queueHTML = '\n\t\t\t<span id="uploadify-queue-' + id + '" class="uploadify-queue"></span>\n\t\t';
-			var sectionHTML = '\n\t\t\t<span class="uploadify">\n\t\t\t\t' + queueHTML + '\n\t\t\t\t' + chooseHTML + '\n\t\t\t\t' + uploadHTML + '\n\t\t\t\t' + errorHTML + '\n\t\t\t</span>\n\t\t';
-
-			this.container = document.querySelector(options.container);
-			var container = this.container;
-			container.innerHTML = sectionHTML;
-			this.queue = container.querySelector('.uploadify-queue');
-			this.chooseButton = container.querySelector('.uploadify-choose-button');
-			this.uploadButton = container.querySelector('.uploadify-upload-button');
-			this.resetInput();
-
-			if (options.auto) {
-				this.hide(this.uploadButton);
-			}
-
-			this.invoke(options.onInit);
-
-			if (options.files instanceof Array && options.files.length > 0) {
-				this.reset(options.files);
-			}
-
-			if (this.isOldIE) {
-				this.showError('Browser Not Support!', true);
-			}
-		}
-	}, {
-		key: 'resetInput',
-		value: function resetInput() {
-			var _this = this;
-
-			var id = this.id;
-			var options = this.options;
-			var inputHTML = '\n\t\t\t<input id="uploadify-input-' + id + '"\n\t\t\t\tclass="uploadify-input"\n\t\t\t\tstyle="display:none"\n\t\t\t\ttype="file"\n\t\t\t\tname="uploadifyfile[]"\n\t\t\t\t' + (options.multiple ? 'multiple' : '') + '\n\t\t\t\taccept="' + options.fileTypeExts + '"\n\t\t\t\t>\n\t\t';
-			var el = document.createElement('div');
-			el.innerHTML = inputHTML;
-			var input = el.children[0];
-			var wrapper = this.container.children[0];
-			input.parentNode.removeChild(input);
-			wrapper.appendChild(input);
-			input.onchange = function () {
-				return _this.onSelectFiles();
-			};
-			this.input = input;
-		}
-	}, {
-		key: 'events',
-		value: function events() {
-			var _this2 = this;
-
-			this.uploadButton.onclick = function () {
-				return _this2.onClickUpload();
-			};
-			this.chooseButton.onclick = function () {
-				return _this2.input.click();
-			};
-		}
-	}, {
-		key: 'onSelectFiles',
-		value: function onSelectFiles() {
-			var _this3 = this;
-
-			var options = this.options;
-
-			// if not multiple and there are some files are waiting for upload
-			if (!options.multiple && this.files.filter(function (item) {
-				return item.status < 2;
-			}).length > 0) {
-				this.showError('Waiting upload!');
-				return;
-			}
-
-			var files = this.getSelectedFiles();
-			var count = this.getExistsFilesCount();
-
-			this.foreach(files, function (file) {
-				file.index = ++count;
-				file.status = 0; // not begin to upload
-			});
-
-			this.invoke(options.onSelect, files, this.files);
-
-			var existsCount = this.files.length;
-
-			this.foreach(files, function (file) {
-				_this3.appendFile(file);
-				if (options.auto) {
-					_this3.uploadFile(file);
+		//定义一个通用函数集合
+		var F = {
+			//将文件的单位由bytes转换为KB或MB，若第二个参数指定为true，则永远转换为KB
+			formatFileSize : function(size,withKB){
+				if (size > 1024 * 1024 && !withKB){
+					size = (Math.round(size * 100 / (1024 * 1024)) / 100).toString() + 'MB';
 				}
-			});
-
-			var finalCount = this.files.length;
-
-			if (options.single) {
-				this.hide(this.chooseButton);
-			}
-
-			if (!options.auto && finalCount > existsCount) {
-				this.fadeIn(this.uploadButton);
-			}
-		}
-	}, {
-		key: 'getImageFakeSize',
-		value: function getImageFakeSize(file) {
-			var el = document.createElement('img');
-			el.style.postion = 'fixed';
-			el.style.top = -1000000 + 'px';
-			el.src = file;
-			document.body.appendChild(el);
-			var w = el.clientWidth;
-			var h = el.clientHeight;
-			document.body.removeChild(el);
-			return w * h;
-		}
-	}, {
-		key: 'getFileName',
-		value: function getFileName(file) {
-			var eos = file.indexOf(':\\') > -1 ? '\\' : '/';
-			return file.split(eos).pop();
-		}
-	}, {
-		key: 'getSelectedFiles',
-		value: function getSelectedFiles() {
-			var _this4 = this;
-
-			var inputValue = this.input.value;
-			var files = this.isIE9 ? [{
-				path: inputValue,
-				name: this.getFileName(inputValue),
-				size: this.getImageFakeSize(inputValue)
-			}] : this.input.files;
-
-			var options = this.options;
-			var arr = [];
-			var typeArray = options.fileTypeExts.split(',');
-
-			this.foreach(files, function (file) {
-				if (typeArray.indexOf(file.name.split('.').pop()) === -1) {
-					_this4.showError('Type Error!');
-					_this4.invoke(options.onSelectError, 1, file);
-					console.error(file.name + '\'s file type is not allowed!');
-				} else if (parseInt(_this4.formatFileSize(file.size, true)) > options.fileSizeLimit) {
-					_this4.showError('Size Limit!');
-					_this4.invoke(options.onSelectError, 2, file);
-					console.error(file.name + '\'s file size is over limited!');
-				} else if (_this4.isFileExists(file)) {
-					_this4.showError('File(s) Exists!');
-
-					var existsFile = _this4.isFileExists(file);
-					var element = existsFile.element;
-					_this4.blink(element);
-
-					_this4.invoke(options.onSelectError, 3, file);
-					console.error(file.name + ' is in selected list.');
-				} else {
-					arr.push(file);
+				else{
+					size = (Math.round(size * 100 / 1024) / 100).toString() + 'KB';
 				}
-			});
-
-			return arr;
-		}
-	}, {
-		key: 'isFileExists',
-		value: function isFileExists(file) {
-			var flag = false;
-			this.foreach(this.files, function (f, i) {
-				if (f.name === file.name && f.size === file.size) {
-					flag = f;
+				return size;
+			},
+			//将输入的文件类型字符串转化为数组,原格式为*.jpg;*.png
+			getFileTypes : function(str){
+				var result = [];
+				var arr1 = str.split(";");
+				for(var i=0, len=arr1.length; i<len; i++){
+					result.push(arr1[i].split(".").pop());
 				}
-			});
-			return flag;
-		}
-	}, {
-		key: 'getExistsFilesCount',
-		value: function getExistsFilesCount() {
-			return this.files.length;
-		}
-	}, {
-		key: 'formatFileSize',
-		value: function formatFileSize(size, withKB) {
-			if (size > 1024 * 1024 && !withKB) {
-				size = (Math.round(size * 100 / (1024 * 1024)) / 100).toString() + 'MB';
-			} else {
-				size = (Math.round(size * 100 / 1024) / 100).toString() + 'KB';
-			}
-			return size;
-		}
-	}, {
-		key: 'getFileByIndex',
-		value: function getFileByIndex(index) {
-			var files = this.files;
-			for (var i = 0, len = files.length; i < len; i++) {
-				if (files[i].index == index) {
-					return files[i];
+				return result;
+			},
+			//根据文件序号获取文件
+			getFile : function(index,files){
+				for(var i=0;i<files.length;i++){
+					if(files[i].index == index){
+						return files[i];
+					}
 				}
+				return null;
 			}
-			return null;
-		}
-	}, {
-		key: 'appendFile',
-		value: function appendFile(file) {
-			var _this5 = this;
+		};
 
-			var src = void 0;
-			if (this.options.showPreview) {
-				if (typeof window.URL !== 'undefined') {
-					src = window.URL.createObjectURL(file);
-				} else {
-					src = 'file:///' + file.path.replace(/\\/g, '/');
-				}
-			}
-			var template = this.options.template;
-			var html = template.replace(/\{queueId}/g, this.id).replace(/\{fileId}/g, file.index);
-			var el = document.createElement('div');
-			el.innerHTML = html;
-			var element = el.children[0];
+		var returnObj = null;
+		var originImageSrc; // 选择本地图片后，预览该图片，将本地图片的显示信息记录到该变量中用于展示
 
-			if (src) {
-				element.style.backgroundImage = 'url(' + src + ')';
-				element.style.backgroundSize = 'cover';
-			}
+		this.each(function(index, element){
+			var _this = $(element);
+			var instanceNumber = $('.uploadify').length+1;
+			var uploadManager = {
+				container : _this,
+				filteredFiles : [],//过滤后的文件数组
+				init : function(){
+					var inputStr = '<input id="select_btn_'+instanceNumber+'" class="selectbtn" style="display:none;" type="file" name="fileselect[]"';
+					inputStr += option.multi ? ' multiple' : '';
+					inputStr += ' accept="';
+					inputStr += F.getFileTypes(option.fileTypeExts).join(",");
+					inputStr += '"/>';
+					inputStr += '<a id="file_upload_'+instanceNumber+'-button" href="javascript:void(0)" class="uploadify-button"><span>';
+					inputStr += option.buttonText;
+					inputStr += '</span></a>';
+					var uploadFileListStr = '<span id="file_upload_'+instanceNumber+'-queue" class="uploadify-queue"></span>';
+					_this.append('<span class="uploadify">' + uploadFileListStr + inputStr + '<span class="uploadify-clear"></span>' + '</span>');
 
-			this.queue.appendChild(element);
-
-			file.element = element;
-			file.element.querySelector('.uploadify-item-delete').onclick = function (e) {
-				_this5.onClickDelete(element, e.target);
-			};
-
-			this.files.push(file);
-		}
-	}, {
-		key: 'uploadFile',
-		value: function uploadFile(file) {
-			this.isIE9 ? this.uploadFileByIFrame(file) : this.uploadFileByXHR(file);
-			this.resetInput();
-		}
-	}, {
-		key: 'uploadFileByIFrame',
-		value: function uploadFileByIFrame(file) {
-			var _this6 = this;
-
-			if (file.status !== 0) {
-				return;
-			}
-			var id = this.id;
-			var options = this.options;
-			var f = document.createElement('div');
-			f.style.position = 'absolute';
-			f.style.top = '-1000px';
-			f.style.left = '-1000px';
-			f.style.height = '1px';
-			f.style.overflow = 'auto';
-			f.innerHTML = '\n\t\t\t<form action="' + options.url + '" method="' + options.method + '" target="upload-iframe-' + id + '-' + file.index + '" enctype="multipart/form-data">\n\t\t\t\t<button type="submit"></button>\n\t\t\t</form>\n\t\t\t<iframe name="upload-iframe-' + id + '-' + file.index + '"></iframe>\n\t\t';
-			f.querySelector('form').appendChild(this.input);
-
-			var iframe = f.querySelector('iframe');
-			var iframeOnload = function iframeOnload(isTimeout) {
-				if (file.status !== 1) {
-					return;
-				}
-				if (isTimeout === 'timeout') {
-					file.status = 4;
-					_this6.invoke(options.onUploadError, file, 'timeout');
-					file.element.className += ' error';
-				} else {
-					file.status = 2;
-					file.element.querySelector('.uploadify-item-container').removeChild(file.element.querySelector('.uploadify-item-progress'));
-					file.element.className += ' success';
-
-					var notify = function notify() {
-						var responseDoc = iframe.contentDocument || iframe.contentWindow.document;
-						var responseText = responseDoc.body.children.length && responseDoc.body.children[0].innerText;
-
-						if (responseText) {
-							_this6.invoke(options.onUploadSuccess, file, responseText);
-							if (options.showPreview > 1) {
-								var data = JSON.parse(responseText);
-								if (data && data[options.showPreviewField]) {
-									file.element.style.backgroundImage = 'url(' + data[options.showPreviewField] + ')';
+					//初始化返回的实例
+					returnObj =  {
+						instanceNumber : instanceNumber,
+						upload : function(fileIndex){
+							if(fileIndex === '*'){
+								for(var i=0,len=uploadManager.filteredFiles.length;i<len;i++){
+									uploadManager._uploadFile(uploadManager.filteredFiles[i]);
 								}
 							}
-						}
-
-						return responseText;
-					};
-
-					var count = 1;
-					var timer = setInterval(function () {
-						var responseText = notify();
-						if (responseText || count === 10) {
-							clearInterval(timer);
-						}
-						count++;
-					}, 500);
-				}
-
-				_this6.invoke(options.onUploadComplete);
-
-				if (_this6.files.filter(function (file) {
-					return file.status < 2;
-				}).length === 0) {
-					_this6.invoke(options.onQueueComplete);
-				}
-			};
-			if (window.addEventListener) {
-				iframe.addEventListener('load', iframeOnload, false);
-			} else {
-				iframe.attachEvent('onload', iframeOnload);
-			}
-
-			document.body.appendChild(f);
-			f.querySelector('button').click();
-
-			file.status = 1;
-			file.iframe = iframe.parentNode;
-			this.invoke(options.onUploadStart, file);
-		}
-	}, {
-		key: 'uploadFileByXHR',
-		value: function uploadFileByXHR(file) {
-			var _this7 = this;
-
-			if (file.status !== 0) {
-				return;
-			}
-
-			var options = this.options;
-			var xhr = new XMLHttpRequest();
-
-			if (xhr.upload) {
-				xhr.upload.onprogress = function (e) {
-					_this7.onProgress(file, e.loaded, e.total);
-				};
-			}
-
-			xhr.onreadystatechange = function (e) {
-				if (file.status !== 1) {
-					return;
-				}
-				if (xhr.readyState == 4) {
-					if (xhr.status == 200) {
-						file.status = 2;
-
-						_this7.invoke(options.onUploadSuccess, file, xhr.responseText);
-
-						file.element.querySelector('.uploadify-item-container').removeChild(file.element.querySelector('.uploadify-item-progress'));
-						file.element.className += ' success';
-
-						if (options.showPreview > 1) {
-							var _data = JSON.parse(xhr.responseText);
-							if (_data && _data[options.showPreviewField]) {
-								file.element.style.backgroundImage = 'url(' + _data[options.showPreviewField] + ')';
+							else{
+								var file = F.getFile(fileIndex,uploadManager.filteredFiles);
+								file && uploadManager._uploadFile(file);
+							}
+						},
+						cancel : function(fileIndex){
+							if(fileIndex === '*'){
+								var len=uploadManager.filteredFiles.length;
+								for(var i=len-1;i>=0;i--){
+									uploadManager._deleteFile(uploadManager.filteredFiles[i]);
+								}
+								option.onClearQueue && option.onClearQueue(len);
+							}
+							else{
+								var file = F.getFile(fileIndex,uploadManager.filteredFiles);
+								file && uploadManager._deleteFile(file);
+							}
+						},
+						disable : function(instanceID){
+							var parent = instanceID ? $('file_upload_'+instanceID+'-button') : $('body');
+							parent.find('.uploadify-button').css('background-color','#888').off('click');
+						},
+						ennable : function(instanceID){
+							//点击上传按钮时触发file的click事件
+							var parent = instanceID ? $('file_upload_'+instanceID+'-button') : $('body');
+							parent.find('.uploadify-button').css('background-color','#707070').on('click',function(){
+								parent.find('.selectbtn').trigger('click');
+							});
+						},
+						destroy : function(){
+							uploadManager.container.html('');
+							uploadManager = null;
+							option.onDestroy && option.onDestroy();
+						},
+						settings : function(name,value){
+							if(arguments.length==1){
+								return option[name];
+							}
+							else{
+								if(name=='formData'){
+									option.formData = $.extend(option.formData, value);
+								}
+								else{
+									option[name] = value;
+								}
+							}
+						},
+						HHuploadify : function(){
+							var method = arguments[0];
+							if(method in this){
+								Array.prototype.splice.call(arguments, 0, 1);
+								this[method].apply(this[method], arguments);
 							}
 						}
-					} else {
-						file.status = 3;
-						_this7.invoke(options.onUploadError, file, xhr.responseText);
-						file.element.className += ' error';
+					};
+
+					//文件选择控件选择
+					var fileInput = this._getInputBtn();
+					if (fileInput.length>0) {
+						fileInput.change(function(e) {
+							// 为IE下获取当前选择的本地图片src做准备，具体展示在_renderFile中
+							if(window.navigator.userAgent.toLowerCase().indexOf("msie") >= 1) {
+								var fileInputElement = e.target;
+								fileInputElement.select();
+								fileInputElement.blur();
+								originImageSrc = document.selection.createRange().text;
+								document.selection.empty();
+							}
+
+							uploadManager._getFiles(e);
+							// 如果是单个文件上传，那么要隐藏上传按钮
+							var fileCount = _this.find('.uploadify-queue .uploadify-queue-item').length; // 注意这个一行，如果选择的文件有问题，弹出提示信息，如果没有这一行的话，上传按钮就会消失
+							if(option.single && fileCount > 0) {
+								_this.find('.uploadify-button').hide();
+							}
+						});
 					}
 
-					_this7.invoke(options.onUploadComplete);
+					//点击选择文件按钮时触发file的click事件
+					_this.find('.uploadify-button').on('click',function(){
+						_this.find('.selectbtn').trigger('click');
+					});
 
-					if (_this7.files.filter(function (file) {
-						return file.status < 2;
-					}).length === 0) {
-						_this7.invoke(options.onQueueComplete);
+					option.onInit && option.onInit(returnObj);
+				},
+				_filter: function(files) {		//选择文件组的过滤方法
+					var arr = [];
+					var typeArray = F.getFileTypes(option.fileTypeExts);
+					if(typeArray.length>0){
+						for(var i=0,len=files.length;i<len;i++){
+							var f = files[i];
+							if(parseInt(F.formatFileSize(f.size,true))<=option.fileSizeLimit){
+								if($.inArray('*',typeArray)>=0 || $.inArray(f.name.split('.').pop(),typeArray)>=0){
+									arr.push(f);
+								}
+								else{
+									alert('文件 "'+f.name+'" 类型不允许！');
+								}
+							}
+							else{
+								alert('文件 "'+f.name+'" 大小超出限制！');
+								continue;
+							}
+						}
+					}
+					return arr;
+				},
+				_getInputBtn : function(){
+					return _this.find('.selectbtn');
+				},
+				_getFileList : function(){
+					return _this.find('.uploadify-queue');
+				},
+				//根据选择的文件，渲染DOM节点
+				_renderFile : function(file){
+					var $html = $(option.itemTemplate.replace(/\${fileID}/g,'fileupload_'+instanceNumber+'_'+file.index).replace(/\${instanceID}/g,_this.attr('id')));
+
+					// 预览本地图片
+					if(option.showPreview > 0) {
+						// chrome
+						if(window.navigator.userAgent.toLowerCase().indexOf("chrome") >= 1) {
+							originImageSrc = window.URL.createObjectURL(file);
+						}
+						// firefox
+						else if(window.navigator.userAgent.toLowerCase().indexOf("firefox") >= 1) {
+							originImageSrc = window.URL.createObjectURL(file);
+						}
+
+						if(originImageSrc)
+							$html.addClass('uploading').css('background-image','url(' + originImageSrc + ')');
+					}
+
+
+					//如果是非自动上传，显示上传按钮
+					if(!option.auto){
+						$html.find('.uploadbtn').css('display','inline-block');
+					}
+					else {
+						$html.find('.uploadbtn').remove();
+					}
+
+					// 是否显示上传提示itemTitle
+					if(option.itemTitle != false) {
+						var title = '<span class="itemtitle">' + option.itemTitle + '</span>';
+						$html.prepend(title);
+					}
+
+					//判断是否显示上传进度条
+					if(option.showUploadedBar) {
+						var $bar = '<span class="uploadify-progress-bar"><span class="uploadify-progress-bar-inner"></span></span>';
+						$html.find('.uploadify-progress').append($bar);
+					}
+
+					//判断是否显示已上传文件大小
+					if(option.showUploadedSize){
+						var $num = '<span class="progressnum"><span class="uploadedsize">0KB</span>/<span class="totalsize">${fileSize}</span></span>'.replace(/\${fileSize}/g,F.formatFileSize(file.size));
+						$html.find('.uploadify-progress').append($num);
+					}
+
+					// 是否在上传时隐藏文件名
+					if(option.showUploadedFilename) {
+						var $filename = '<span class="up_filename">${fileName}</span>'.replace(/\${fileName}/g,file.name);
+						$html.prepend($filename);
+					}
+
+					//判断是否显示上传百分比
+					if(option.showUploadedPercent){
+						var $percentText = '<span class="up_percent">0%</span>';
+						$html.find('.uploadify-progress').append($percentText);
+					}
+
+					// 添加DOM
+					uploadManager._getFileList().append($html);
+
+					//触发select动作
+					option.onSelect && option.onSelect(file);
+
+					//判断是否是自动上传
+					if(option.auto){
+						uploadManager._uploadFile(file);
+					}
+					else{
+						//如果配置非自动上传，绑定上传事件
+						$html.find('.uploadbtn').on('click',function(){
+							if(!$(this).hasClass('.disabledbtn')){
+								$(this).addClass('.disabledbtn');
+								uploadManager._uploadFile(file);
+							}
+						});
+					}
+
+					//为删除文件按钮绑定删除文件事件
+					$html.find('.delfilebtn').on('click',function(){
+						if(!$(this).hasClass('.disabledbtn')){
+							$(this).addClass('.disabledbtn');
+							uploadManager._deleteFile(file);
+						}
+					});
+				},
+				//获取选择后的文件
+				_getFiles : function(e){
+					var files = e.target.files;
+					files = uploadManager._filter(files);
+					var fileCount = _this.find('.uploadify-queue .uploadify-queue-item').length;//队列中已经有的文件个数
+					for(var i=0,len=files.length;i<len;i++){
+						files[i].index = ++fileCount;
+						files[i].status = 0;//标记为未开始上传
+						uploadManager.filteredFiles.push(files[i]);
+						var l = uploadManager.filteredFiles.length;
+						uploadManager._renderFile(uploadManager.filteredFiles[l-1]);
+					}
+				},
+				//删除文件
+				_deleteFile : function(file){
+					for (var i = 0,len=uploadManager.filteredFiles.length; i<len; i++) {
+						var f = uploadManager.filteredFiles[i];
+						if (f.index == file.index) {
+							uploadManager.filteredFiles.splice(i,1);
+							_this.find('#fileupload_'+instanceNumber+'_'+file.index).fadeOut(function(){
+								if(option.single) {
+									_this.find('.uploadify-button').show();
+								}
+								$(this).remove();
+							});
+							option.onCancel && option.onCancel(file);
+							break;
+						}
+					}
+				},
+				//校正上传完成后的进度条误差
+				_regulateView : function(file){
+					var thisfile = _this.find('#fileupload_'+instanceNumber+'_'+file.index);
+					thisfile.find('.uploadify-progress-bar-inner').css('width','100%');
+					option.showUploadedSize && thisfile.find('.uploadedsize').text(thisfile.find('.totalsize').text());
+					option.showUploadedPercent && thisfile.find('.up_percent').text('100%');
+				},
+				onProgress : function(file, loaded, total) {
+					var eleProgress = _this.find('#fileupload_'+instanceNumber+'_'+file.index+' .uploadify-progress');
+					var percent = (loaded / total * 100).toFixed(2) +'%';
+					if(option.showUploadedSize){
+						eleProgress.nextAll('.progressnum .uploadedsize').text(F.formatFileSize(loaded));
+						eleProgress.nextAll('.progressnum .totalsize').text(F.formatFileSize(total));
+					}
+					if(option.showUploadedPercent){
+						eleProgress.nextAll('.up_percent').text(percent);
+					}
+					if(option.showUploadedBar) {
+						eleProgress.children('.uploadify-progress-bar-inner').css('width',percent);
+					}
+				},
+				_allFilesUploaded : function(){
+					var queueData = {
+						uploadsSuccessful : 0,
+						uploadsErrored : 0
+					};
+					for(var i=0,len=uploadManager.filteredFiles.length; i<len; i++){
+						var s = uploadManager.filteredFiles[i].status;
+						if(s===0 || s===1){
+							queueData = false;
+							break;
+						}
+						else if(s===2){
+							queueData.uploadsSuccessful++;
+						}
+						else if(s===3){
+							queueData.uploadsErrored++;
+						}
+					}
+					return queueData;
+				},
+				//上传文件
+				_uploadFile : function(file){
+					var xhr = null;
+					try{
+						xhr=new XMLHttpRequest();
+					}catch(e){
+						xhr=ActiveXobject("Msxml12.XMLHTTP");
+					}
+					if(xhr.upload){
+						// 上传中
+						xhr.upload.onprogress = function(e) {
+							uploadManager.onProgress(file, e.loaded, e.total);
+						};
+
+						xhr.onreadystatechange = function(e) {
+							if(xhr.readyState == 4){
+								if(xhr.status == 200){
+									uploadManager._regulateView(file);
+									file.status = 2;//标记为上传成功
+									option.onUploadSuccess && option.onUploadSuccess(file, xhr.responseText);
+									//在指定的间隔时间后删掉进度条
+									_this.find('#fileupload_'+instanceNumber+'_'+file.index).find('.uploadify-progress').fadeOut(option.removeTimeout,function(){
+										$(this).remove();
+										//console.log(file);
+									});
+
+									// 上传成功后，把上传结果图片显示在区域内
+									_this.find('#fileupload_'+instanceNumber+'_'+file.index).removeClass('uploading').addClass('uploaded');
+									if(option.showPreview > 1) {
+										var data = $.parseJSON(xhr.responseText); // 解析为json，注意responseText是文本
+										if(data && data[option.showPreviewField] != undefined) {
+											_this.find('#fileupload_'+instanceNumber+'_'+file.index).css({'background-image' : 'url(' + data[option.showPreviewField] + ')'});
+										}
+									}
+								}
+								else {
+									file.status = 3;//标记为上传失败
+									option.onUploadError && option.onUploadError(file, xhr.responseText);
+								}
+								option.onUploadComplete && option.onUploadComplete(file,xhr.responseText);
+
+								//检测队列中的文件是否全部上传完成，执行onQueueComplete
+								if(option.onQueueComplete){
+									var queueData = uploadManager._allFilesUploaded();
+									queueData && option.onQueueComplete(queueData);
+								}
+
+								//清除文件选择框中的已有值
+								uploadManager._getInputBtn().val('');
+							}
+						};
+
+						if(file.status===0){
+							file.status = 1;//标记为正在上传
+							option.onUploadStart && option.onUploadStart(file);
+							// 开始上传
+							xhr.open(option.method, option.uploader, true);
+							xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+							var fd = new FormData();
+							fd.append(option.fileObjName,file);
+							if(option.formData){
+								for(var key in option.formData){
+									fd.append(key,option.formData[key]);
+								}
+							}
+							xhr.send(fd);
+						}
+
 					}
 				}
 			};
 
-			xhr.open(options.method, options.url, true);
-			xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
-			var fd = void 0;
-			if (typeof FormData === 'undefined') {
-				fd = [];
-				fd.push(options.field, file);
-			} else {
-				fd = new FormData();
-				fd.append(options.field, file);
-			}
-			var data = options.data;
-			if (data) {
-				for (var key in data) {
-					fd.append(key, data[key]);
-				}
-			}
-			xhr.send(fd);
+			uploadManager.init();
+		});
 
-			file.status = 1;
-			file.xhr = xhr;
-			this.invoke(options.onUploadStart, file);
-		}
-	}, {
-		key: 'onProgress',
-		value: function onProgress(file, loaded, total) {
-			var percent = (loaded / total * 100).toFixed(2) + '%';
-			var processEl = file.element.querySelector('.uploadify-item-progress');
-			var html = void 0;
-
-			switch (this.options.showUploadProcess) {
-				case 'bar':
-					html = '\n\t\t\t\t\t<span class="uploadify-progress-bar">\n\t\t\t\t\t\t<span class="uploadify-progress-bar-inner" style="width:' + percent + '"></span>\n\t\t\t\t\t</span>\n\t\t\t\t';
-					processEl.innerHTML = html;
-					break;
-				case 'percent':
-					html = '\n\t\t\t\t\t<span class="uploadify-progress-percent">' + percent + '</span>\n\t\t\t\t';
-					processEl.innerHTML = html;
-					break;
-				case 'size':
-				default:
-					html = '\n\t\t\t\t\t<span class="uploadify-progress-size">' + this.formatFileSize(loaded) + ' / ' + this.formatFileSize(total) + '</span>\n\t\t\t\t';
-					processEl.innerHTML = html;
-			}
-		}
-	}, {
-		key: 'onClickUpload',
-		value: function onClickUpload() {
-			var _this8 = this;
-
-			this.foreach(this.files, function (file) {
-				return _this8.uploadFile(file);
-			});
-			this.fadeOut(this.uploadButton);
-			this.resetInput();
-		}
-	}, {
-		key: 'onClickDelete',
-		value: function onClickDelete(element, target) {
-			var fileid = target.getAttribute('data-fileid');
-			var file = this.getFileByIndex(fileid);
-			if (file.xhr) {
-				file.xhr.abort();
-				this.invoke(this.options.onUploadCancel, file);
-			}
-			if (file.iframe) {
-				document.body.removeChild(file.iframe);
-				this.invoke(this.options.onUploadCancel, file);
-			}
-
-			this.queue.removeChild(element);
-			this.files.splice(this.files.indexOf(file), 1);
-			this.resetInput();
-			this.invoke(this.options.onRemoved, file);
-
-			if (this.files.length === 0) {
-				this.fadeOut(this.uploadButton);
-			}
-
-			if (this.options.single) {
-				this.show(this.chooseButton);
-			}
-		}
-	}, {
-		key: 'reset',
-		value: function reset(files) {
-			var _this9 = this;
-
-			var template = this.options.template;
-			var id = this.idea;
-
-			this.queue.innerHTML = '';
-
-			this.foreach(files, function (file, index) {
-				var tpl = template.replace(/\{queueId}/g, _this9.id).replace(/\{fileId}/g, index + 1);
-				var el = document.createElement('div');
-				el.innerHTML = tpl;
-				var element = el.children[0];
-				element.className += ' success';
-				element.style.backgroundImage = 'url(' + file.path + ')';
-				element.style.backgroundSize = 'cover';
-
-				_this9.queue.appendChild(element);
-
-				file.element = element;
-				file.element.querySelector('.uploadify-item-delete').onclick = function (e) {
-					_this9.onClickDelete(element, e.target);
-				};
-
-				file.index = index + 1;
-				file.status = 2;
-				file.name = file.name || _this9.getFileName(file.path);
-				file.size = file.size || _this9.getImageFakeSize(file.path);
-				_this9.files.push(file);
-			});
-
-			this.invoke(this.options.onReset);
-		}
-	}, {
-		key: 'showError',
-		value: function showError(msg) {
-			var _this10 = this;
-
-			var notDisappear = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
-
-			var errorEl = this.container.querySelector('.uploadify-error');
-			errorEl.querySelector('.uploadify-error-msg').innerText = msg;
-			this.fadeIn(errorEl);
-			if (!notDisappear) {
-				setTimeout(function () {
-					return _this10.fadeOut(errorEl);
-				}, 1500);
-			}
-		}
-		// =============== functions ================
-
-	}, {
-		key: 'invoke',
-		value: function invoke(factory) {
-			if (typeof factory === 'function') {
-				for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-					args[_key - 1] = arguments[_key];
-				}
-
-				factory.apply(this, args);
-			}
-		}
-	}, {
-		key: 'hide',
-		value: function hide(element) {
-			var className = element.className;
-			if (className.indexOf('hidden') === -1) {
-				element.className += ' hidden';
-			}
-		}
-	}, {
-		key: 'show',
-		value: function show(element) {
-			element.className = element.className.replace('hidden', '');
-		}
-	}, {
-		key: 'fadeOut',
-		value: function fadeOut(element) {
-			var className = element.className;
-			if (className.indexOf('hidden') > -1) {
-				return;
-			}
-			element.className += ' fade fadeIn';
-			element.className = element.className.replace('fadeIn', 'fadeOut');
-			setTimeout(function () {
-				return element.className = className + ' hidden';
-			}, 500);
-		}
-	}, {
-		key: 'fadeIn',
-		value: function fadeIn(element) {
-			var className = element.className;
-			if (className.indexOf('hidden') === -1) {
-				return;
-			}
-			if (className.indexOf('fadeIn') > -1) {
-				return;
-			}
-			element.className = className.replace('hidden', 'fade fadeOut');
-			setTimeout(function () {
-				return element.className = element.className.replace('fadeOut', 'fadeIn');
-			}, 0);
-			setTimeout(function () {
-				return element.className = className.replace('hidden', '');
-			}, 500);
-		}
-	}, {
-		key: 'blink',
-		value: function blink(element) {
-			var className = element.className;
-			if (className.indexOf('hidden') > -1) {
-				return;
-			}
-			if (className.indexOf('fade') > -1) {
-				return;
-			}
-
-			var newClassName = className + ' blink';
-			var count = 4;
-			var timer = setInterval(function () {
-				element.className = newClassName + ' fade60';
-				setTimeout(function () {
-					return element.className = newClassName;
-				}, 100);
-				count--;
-				if (count <= 0) {
-					clearInterval(timer);
-					element.className = className;
-				}
-			}, 200);
-		}
-	}, {
-		key: 'foreach',
-		value: function foreach(arr, callback) {
-			for (var i = 0, len = arr.length; i < len; i++) {
-				if (callback(arr[i], i, arr) === false) return;
-			}
-		}
-	}, {
-		key: 'merge',
-		value: function merge(obj1, obj2) {
-			for (var key in obj2) {
-				if (obj2.hasOwnProperty(key)) {
-					var value = obj2[key];
-					obj1[key] = value;
-				}
-			}
-			return obj1;
-		}
-	}]);
-
-	return HHuploadify;
-}();
-
-/* harmony default export */ __webpack_exports__["default"] = (HHuploadify);
-
-/***/ })
-/******/ ]);
-window["HHuploadify"] = window["HHuploadify"]["default"];
+		return returnObj;
+	}
+});
